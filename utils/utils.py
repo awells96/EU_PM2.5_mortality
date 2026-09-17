@@ -8,7 +8,7 @@
 # land_filter
 # autosize_figure
 # bilinear_interp
-# create_global_country_map
+# create_eu_country_map
 # get_scenario_config
 # standardise_latlon
 # load_file_list
@@ -94,27 +94,27 @@ def bilinear_interp(in_grid, target_grid):
     return regridder
 
 
-# === Take list of country data and create global map ===
-def create_global_country_map(da, masks_dir):
+# === Take list of country data and create eu map ===
+def create_eu_country_map(da, masks_dir):
     # Load in country mask
-    mask_file = "GBD_Country_Masks_0.10.nc"
+    mask_file = "GBD_Country_Masks_EU_SHERPA_res.nc"
     mask_path = pathlib.Path(masks_dir) / mask_file
-    masks = xr.open_dataarray(mask_path)
+    eu_mask = xr.open_dataarray(mask_path)
 
     # Create DataArray filled with NaNs
-    global_array = xr.DataArray(
-        np.full((len(masks.lat), len(masks.lon)), np.nan),
-        coords={"lat": masks.lat.values, "lon": masks.lon.values},
-        dims=["lat", "lon"]
+    eu_array = xr.DataArray(
+        np.full((len(eu_mask.lat), len(eu_mask.lon)), np.nan),
+        coords={"latitude": eu_mask.lat.values, "longitude": eu_mask.lon.values},
+        dims=["latitude", "longitude"]
     )
 
-    for i in range(len(masks.country)):
-        mask = masks.isel(country=i)
-        country = masks.isel(country=i)["country"]
+    for i in range(len(eu_mask.country)):
+        mask = eu_mask.isel(country=i)
+        country = eu_mask.isel(country=i)["country"]
         mortality_country = da.sel(country=country)
-        global_array = global_array.where(mask == 0, mortality_country)
+        eu_array = eu_array.where(mask == 0, mortality_country)
 
-    return global_array
+    return eu_array
 
 
 # === Return the configuration for a given model and scenario ===
